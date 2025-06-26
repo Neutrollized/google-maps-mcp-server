@@ -59,7 +59,8 @@ async def get_directions(origin: str, destination: str, mode: str="driving") -> 
     try:
         assert_mode(mode)
     except AssertionError as e:
-        print(e)
+        # print(e) # Replaced print with a return
+        return json.dumps({"error": str(e)}, separators=(',', ':'))
 
     results = gmaps.directions(origin, destination, mode)
 
@@ -101,20 +102,34 @@ async def get_distance(origin: str, destination: str, mode: str="driving") -> Op
     try:
         assert_mode(mode)
     except AssertionError as e:
-        print(e)
+        # print(e) # Replaced print with a return
+        return json.dumps({"error": str(e)}, separators=(',', ':'))
 
     results = gmaps.distance_matrix(origin, destination, mode)
 
     if results:
-        shortest_distance = results.get('rows', {})[0]
+        rows = results.get('rows', [])
+        if not rows: # Check if rows is empty
+            return "No distance information found for the specified locations." # More specific message
+
+        shortest_distance_elements = rows[0].get('elements', [])
+        if not shortest_distance_elements or 'distance' not in shortest_distance_elements[0] or 'duration' not in shortest_distance_elements[0]:
+            return "No distance information found for the specified locations." # More specific message
+
+        # At this point, we expect elements[0] to have distance and duration
+        element = shortest_distance_elements[0]
+
+        # Additional check for status if available, e.g. "ZERO_RESULTS"
+        if element.get('status') == 'ZERO_RESULTS':
+            return "No distance information found for the specified locations (ZERO_RESULTS)."
 
         output = {
-            "total_distance": shortest_distance['elements'][0]['distance']['text'],
-            "total_duration": shortest_distance['elements'][0]['duration']['text'],
+            "total_distance": element['distance']['text'],
+            "total_duration": element['duration']['text'],
         }
         return json.dumps(output, separators=(',', ':'))
     else:
-        return "No directions found for the specified locations."
+        return "No distance information found for the specified locations." # Generic message for no results
 
 
 #-------------------
@@ -167,7 +182,8 @@ async def find_place(input: str, input_type: str="textquery", fields: list=["pla
     try:
         assert_input_type(input_type)
     except AssertionError as e:
-        print(e)
+        # print(e) # Replaced print with a return
+        return json.dumps({"error": str(e)}, separators=(',', ':'))
 
     results = gmaps.find_place(input, input_type, fields)
 
@@ -236,20 +252,28 @@ async def place_details(place_id: str, fields: list=["name", "formatted_address"
     results = gmaps.place(place_id, fields)
 
     if results:
-        place_details = results.get('result', {})
+        details = results.get('result', {})
+        if not details: # Check if details dict is empty
+            return "No details found for the specified place."
 
         output = {
-            "name": place_details['name'],
-            "formatted_address": place_details['formatted_address'],
-            "formatted_phone_number": place_details.get('formatted_phone_number', None),
-            "website": place_details.get('website', None),
-            "types": place_details['types'],
-            "rating": place_details.get('rating', None),
-            "user_ratings_total": place_details.get('user_ratings_total', 0),
+            "name": details.get('name'), # Use .get() for all potentially missing keys
+            "formatted_address": details.get('formatted_address'),
+            "formatted_phone_number": details.get('formatted_phone_number'),
+            "website": details.get('website'),
+            "types": details.get('types'), # If types is critical and always present, direct access might be okay
+            "rating": details.get('rating'),
+            "user_ratings_total": details.get('user_ratings_total', 0), # Existing .get with default for this one
         }
+        # Filter out None values from output to keep it clean if some fields are missing
+        output = {k: v for k, v in output.items() if v is not None}
+
+        if not output.get("name"): # If essential info like name is missing after .get()
+             return "Essential place details (e.g. name) are missing."
+
         return json.dumps(output, separators=(',', ':'))
     else:
-        return "No such place found."
+        return "No such place found." # This handles case where 'results' itself is None
 
 
 #----------------
