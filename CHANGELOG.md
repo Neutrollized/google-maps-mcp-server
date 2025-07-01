@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.1.0] - 2025-07-01 - Happy birthday, Canada!
 ### Added
 - Unit tests via `pytest` in `tests/test_server.py` (thanks, [Jules](https://jules.google/)!)
+- FastMCP client test in `tests/client_list_tools.py`
 - Additional error handling in `server.py` (also recommended by Jules)
 - `pytest` and `pytest-asyncio` to `requirements.txt`
 
