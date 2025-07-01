@@ -25,9 +25,40 @@ You can substitute `stdio` with `streaming-http` or `sse` (deprecated) depending
 **NOTE:** if you use the `fastmcp` option, it ignores the `if __name__ == "__main__"`, so you need to pass `--transport` and any other settings you wish to override.
 
 
+## Unit tests
+```
+pytest -v tests/
+```
+
+### Client test
+Run server with:
+```
+fastmcp run server --transport streaming-http
+```
+
+Run client with:
+```
+python tests/client_list_tools.py
+```
+
+- sample output:
+```console
+[Tool found]: get_directions
+[Tool found]: get_distance
+[Tool found]: get_geocode
+[Tool found]: find_place
+[Tool found]: place_nearby
+[Tool found]: place_details
+```
+
+
 ## How to use/connect
 ### Agent Development Kit (ADK)
 ```python
+model="gemini-2.5-flash"
+google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY")
+
+
 maps_agent = LlmAgent(
     name="maps_agent",
     model=model,
@@ -56,7 +87,7 @@ maps_agent = LlmAgent(
 And here's a more detailed prompt example I give my agent:
 ```
 MAPS_AGENT_PROMPT="""
-System Role: You are an AI Google Maps assistant. Your primary function is to find places that meet the user's criteria. You achieve this by finding a list of places within a 5km radius of the user's location unless otherwise specified. Include with your findings the name of the place, its rating, and its address. Limit the results to a maximum of 10.
+System Role: You are an AI Google Maps assistant. Your primary function is to find places that meet the user's criteria. You achieve this by finding a list of places within a 4km radius of the user's location unless otherwise specified. Include with your findings the name of the place, its rating, and its address. Limit the results to a maximum of 10.
 
 When asked for directions, provide the route we will be travelling via, total distance, total time and step-by-step directions in a list format.
 

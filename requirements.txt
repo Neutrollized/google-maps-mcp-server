@@ -1,6 +1,6 @@
 googlemaps >= 4.10.0
 fastmcp >= 2.9.0
-mcp >= 1.9.4
+mcp == 1.9.4
 asyncio == 3.4.3
 pytest >= 7.0.0
 pytest-asyncio >= 0.18.0

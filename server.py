@@ -95,6 +95,7 @@ async def get_distance(origin: str, destination: str, mode: str="driving") -> Op
     Args:
         origin (str): originating address
         destination (str): destination address
+        mode (str): mode of travel (driving, walking, bicycling, transit)
 
     Returns:
         dictionary (JSON) of total distance and total travel time duration

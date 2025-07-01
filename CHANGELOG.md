@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.0] - 2025-07-01 - Happy birthday, Canada!
+### Added
+- Unit tests via `pytest` in `tests/test_server.py` (thanks, [Jules](https://jules.google/)!)
+- Additional error handling in `server.py` (also recommended by Jules)
+- `pytest` and `pytest-asyncio` to `requirements.txt`
+
 ## [0.0.2] - 2025-06-24
 ### Added
 - Tools: `get_geocode`, `get_distance`
