@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [0.2.0] - 2025-10-07
+### Added
+- `fastmcp.json` to adhere to changes in FastMCP module updates
+### Changed
+- Updated `fastmcp` from `>= 2.9.0` to `>= 2.12.4`
+- Updated `mcp` from `== 1.9.4` to `== 1.16.0`
+
 ## [0.1.0] - 2025-07-01 - Happy birthday, Canada!
 ### Added
 - Unit tests via `pytest` in `tests/test_server.py` (thanks, [Jules](https://jules.google/)!)

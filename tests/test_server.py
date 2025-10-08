@@ -204,6 +204,7 @@ async def test_get_distance_success(mock_gmaps):
     expected_output = {
         "total_distance": "50 km",
         "total_duration": "1 hour",
+        "mode": "driving",
     }
     assert json.loads(result) == expected_output
 

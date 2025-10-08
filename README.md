@@ -33,7 +33,7 @@ pytest -v tests/
 ### Client test
 Run server with:
 ```
-fastmcp run server --transport streaming-http
+fastmcp run server.py --transport streamable-http
 ```
 
 Run client with:

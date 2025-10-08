@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 #---------------
 # settings
 #---------------
+# these host, port, transport settings only apply if run using python
 host=os.environ.get("FASTMCP_HOST", "0.0.0.0")
 port=os.environ.get("FASTMCP_PORT", 8080)
 transport=os.environ.get("FASTMCP_TRANSPORT", "stdio")  # stdio, streamable-http, sse
@@ -37,7 +38,6 @@ def assert_input_type(input_type: str):
 # https://gofastmcp.com/servers/fastmcp#server-configuration
 mcp = FastMCP(
     name="FastMCP Google Maps Platform Server",
-    dependencies=["googlemaps==4.10.0", "asyncio==3.4.3"],
     on_duplicate_tools="error",
 )
 
@@ -47,7 +47,7 @@ mcp = FastMCP(
 #-------------------
 @mcp.tool()
 async def get_directions(origin: str, destination: str, mode: str="driving") -> Optional[Dict[str, Any]]:
-    """Gives step-by-step instructions to get from origin to destination uisng a particular mode of transport
+    """Gives step-by-step instructions to get from origin to destination using a particular mode of transport
     Args:
         origin (str): originating address
         destination (str): destination address
@@ -91,14 +91,14 @@ async def get_directions(origin: str, destination: str, mode: str="driving") -> 
 #--------------------------
 @mcp.tool()
 async def get_distance(origin: str, destination: str, mode: str="driving") -> Optional[Dict[str, Any]]:
-    """Finds the distance and travel time between two locations
+    """Finds the distance and travel time between two locations for a mode of transportation
     Args:
         origin (str): originating address
         destination (str): destination address
         mode (str): mode of travel (driving, walking, bicycling, transit)
 
     Returns:
-        dictionary (JSON) of total distance and total travel time duration
+        dictionary (JSON) of total distance, total travel time duration, and mode of travel
     """
     try:
         assert_mode(mode)
@@ -127,6 +127,7 @@ async def get_distance(origin: str, destination: str, mode: str="driving") -> Op
         output = {
             "total_distance": element['distance']['text'],
             "total_duration": element['duration']['text'],
+            "mode": mode,
         }
         return json.dumps(output, separators=(',', ':'))
     else:
