@@ -55,7 +55,7 @@ python tests/client_list_tools.py
 ## How to use/connect
 ### Agent Development Kit (ADK)
 ```python
-model="gemini-2.5-flash"
+model="gemini-3.6-flash"
 google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY")
 
 
@@ -74,7 +74,8 @@ maps_agent = LlmAgent(
                     "maps_agent/server.py"
                 ],
                 env={
-                    "GOOGLE_MAPS_API_KEY": google_maps_api_key
+                    "GOOGLE_MAPS_API_KEY": google_maps_api_key,
+                    "FASTMCP_SHOW_SERVER_BANNER": "false"
                 },
             ),
             #tool_filter=['tool1', 'tool2']
