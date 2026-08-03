@@ -3,7 +3,7 @@ import asyncio
 from fastmcp import Client
 
 
-async def test_server_tools():
+async def run_server_tools():
     # fastmcp run server.py --transport streamable-http
     # use "/sse" for sse transport
     async with Client("http://localhost:8000/mcp") as client:
@@ -14,4 +14,4 @@ async def test_server_tools():
 
 
 if __name__ == "__main__":
-    asyncio.run(test_server_tools())
+    asyncio.run(run_server_tools())
