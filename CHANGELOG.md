@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [0.4.0] - 2026-08-03
 ### Changed
+- Linted and formatted using [`ruff`](https://github.com/astral-sh/ruff)
 - Updated PyTest tests
 - Updated `pytest` from `>= 7.0.0` to `>= 9.0.0`
 ### Fixed

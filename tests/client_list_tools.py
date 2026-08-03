@@ -1,5 +1,7 @@
 import asyncio
+
 from fastmcp import Client
+
 
 async def test_server_tools():
     # fastmcp run server.py --transport streamable-http
