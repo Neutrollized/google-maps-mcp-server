@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0] - 2026-08-03
+### Changed
+- Updated PyTest tests
+- Updated `pytest` from `>= 7.0.0` to `>= 9.0.0`
+### Fixed
+- Added some `return output` for `get_directions`, `get_distance`, and `get_geocode` functions
+
 ## [0.3.0] - 2026-08-01
 ### Removed
 - Import of `re`, `json`, and `asyncio` packages

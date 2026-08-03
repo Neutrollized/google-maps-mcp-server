@@ -4,7 +4,6 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pytest
-import json
 from unittest.mock import patch, MagicMock, PropertyMock
 
 # Since server.py might try to initialize googlemaps.Client immediately,
@@ -81,10 +80,6 @@ def test_assert_input_type_invalid():
 
 
 # --- Tool Function Tests (Placeholder Structure) ---
-# We will fill these in based on the plan
-
-# print(">>>>>>>>>>>> DIR GET_DIRECTIONS", dir(get_directions)) # Temporary debug line
-
 @pytest.mark.asyncio
 async def test_get_directions_success(mock_gmaps):
     """Test get_directions successfully returns directions."""
@@ -116,7 +111,7 @@ async def test_get_directions_success(mock_gmaps):
     origin = "San Francisco"
     destination = "San Jose"
     mode = "driving"
-    result = await get_directions.fn(origin, destination, mode)
+    result = await get_directions(origin, destination, mode)
 
     mock_gmaps.directions.assert_called_once_with(origin, destination, mode)
 
@@ -137,7 +132,7 @@ async def test_get_directions_success(mock_gmaps):
             }
         ]
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_get_directions_no_results(mock_gmaps):
@@ -146,7 +141,7 @@ async def test_get_directions_no_results(mock_gmaps):
 
     origin = "Oz"
     destination = "Wonderland"
-    result = await get_directions.fn(origin, destination)
+    result = await get_directions(origin, destination)
 
     mock_gmaps.directions.assert_called_once_with(origin, destination, "driving") # Default mode
     assert result == "No directions found for the specified locations."
@@ -167,11 +162,11 @@ async def test_get_directions_invalid_mode(mock_gmaps, capsys):
     # as our function will call it even with an invalid mode.
     mock_gmaps.directions.return_value = []
 
-    result = await get_directions.fn(origin, destination, invalid_mode)
+    result = await get_directions(origin, destination, invalid_mode)
 
     # assert_mode now causes an early return with a JSON error message
     expected_error_msg = f"ERROR: '{invalid_mode}' is not one of the allowed modes: {['driving', 'walking', 'bicycling', 'transit']}"
-    assert json.loads(result) == {"error": expected_error_msg}
+    assert result == {"error": expected_error_msg}
 
     # gmaps.directions should NOT be called if assert_mode fails and returns early
     mock_gmaps.directions.assert_not_called()
@@ -197,7 +192,7 @@ async def test_get_distance_success(mock_gmaps):
     origin = "Point A"
     destination = "Point B"
     mode = "driving"
-    result = await get_distance.fn(origin, destination, mode)
+    result = await get_distance(origin, destination, mode)
 
     mock_gmaps.distance_matrix.assert_called_once_with(origin, destination, mode)
 
@@ -206,7 +201,7 @@ async def test_get_distance_success(mock_gmaps):
         "total_duration": "1 hour",
         "mode": "driving",
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_get_distance_no_results(mock_gmaps):
@@ -220,14 +215,14 @@ async def test_get_distance_no_results(mock_gmaps):
 
     # Scenario 1: API returns {"rows": []} (empty rows)
     mock_gmaps.distance_matrix.return_value = {"rows": []}
-    result_empty_rows = await get_distance.fn(origin, destination, default_fields_mode)
+    result_empty_rows = await get_distance(origin, destination, default_fields_mode)
     mock_gmaps.distance_matrix.assert_called_once_with(origin, destination, default_fields_mode)
     assert result_empty_rows == "No distance information found for the specified locations."
 
     # Scenario 2: API returns rows with empty elements list
     mock_gmaps.reset_mock()
     mock_gmaps.distance_matrix.return_value = {"rows": [{"elements": []}]}
-    result_empty_elements = await get_distance.fn(origin, destination, default_fields_mode)
+    result_empty_elements = await get_distance(origin, destination, default_fields_mode)
     mock_gmaps.distance_matrix.assert_called_once_with(origin, destination, default_fields_mode)
     assert result_empty_elements == "No distance information found for the specified locations."
 
@@ -236,7 +231,7 @@ async def test_get_distance_no_results(mock_gmaps):
     mock_gmaps.distance_matrix.return_value = {
         "rows": [{"elements": [{"status": "ZERO_RESULTS"}]}]
     }
-    result_zero_results = await get_distance.fn(origin, destination, default_fields_mode)
+    result_zero_results = await get_distance(origin, destination, default_fields_mode)
     mock_gmaps.distance_matrix.assert_called_once_with(origin, destination, default_fields_mode)
     # The current server logic will return the generic message because the ZERO_RESULTS element is missing distance/duration
     assert result_zero_results == "No distance information found for the specified locations."
@@ -244,7 +239,7 @@ async def test_get_distance_no_results(mock_gmaps):
     # Scenario 4: API returns None (overall falsy response)
     mock_gmaps.reset_mock()
     mock_gmaps.distance_matrix.return_value = None
-    result_none_response = await get_distance.fn(origin, destination, default_fields_mode)
+    result_none_response = await get_distance(origin, destination, default_fields_mode)
     mock_gmaps.distance_matrix.assert_called_once_with(origin, destination, default_fields_mode)
     assert result_none_response == "No distance information found for the specified locations."
 
@@ -259,11 +254,11 @@ async def test_get_distance_invalid_mode(mock_gmaps, capsys):
     # Set the mock to return None, simulating that an invalid mode leads to no results from API
     mock_gmaps.distance_matrix.return_value = None
 
-    result = await get_distance.fn(origin, destination, invalid_mode)
+    result = await get_distance(origin, destination, invalid_mode)
 
     # assert_mode now causes an early return with a JSON error message
     expected_error_msg = f"ERROR: '{invalid_mode}' is not one of the allowed modes: {['driving', 'walking', 'bicycling', 'transit']}"
-    assert json.loads(result) == {"error": expected_error_msg}
+    assert result == {"error": expected_error_msg}
 
     # gmaps.distance_matrix should NOT be called if assert_mode fails and returns early
     mock_gmaps.distance_matrix.assert_not_called()
@@ -285,7 +280,7 @@ async def test_get_geocode_success(mock_gmaps):
     mock_gmaps.geocode.return_value = mock_api_response
 
     address = "1600 Amphitheatre Parkway, Mountain View, CA"
-    result = await get_geocode.fn(address)
+    result = await get_geocode(address)
 
     mock_gmaps.geocode.assert_called_once_with(address)
 
@@ -293,7 +288,7 @@ async def test_get_geocode_success(mock_gmaps):
         "lat": 37.7749,
         "lng": -122.4194
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_get_geocode_not_found(mock_gmaps):
@@ -301,7 +296,7 @@ async def test_get_geocode_not_found(mock_gmaps):
     mock_gmaps.geocode.return_value = [] # Empty list indicates not found
 
     address = "NonExistent Address, Atlantis"
-    result = await get_geocode.fn(address)
+    result = await get_geocode(address)
 
     mock_gmaps.geocode.assert_called_once_with(address)
     assert result == "Address not found"
@@ -326,7 +321,7 @@ async def test_find_place_success(mock_gmaps):
     query = "Googleplex"
     input_type = "textquery"
     fields = ["place_id", "formatted_address", "name", "geometry", "types", "rating"]
-    result = await find_place.fn(query, input_type, fields)
+    result = await find_place(query, input_type, fields)
 
     mock_gmaps.find_place.assert_called_once_with(query, input_type, fields)
 
@@ -338,7 +333,7 @@ async def test_find_place_success(mock_gmaps):
         "types": ["point_of_interest", "establishment"],
         "rating": 4.5
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_find_place_no_candidates(mock_gmaps):
@@ -346,10 +341,10 @@ async def test_find_place_no_candidates(mock_gmaps):
     mock_gmaps.find_place.return_value = {"candidates": []} # No candidates found
 
     query = "MadeUpPlace Central"
-    result = await find_place.fn(query, "textquery")
+    result = await find_place(query, "textquery")
 
     mock_gmaps.find_place.assert_called_once_with(query, "textquery", ["place_id", "formatted_address", "name", "geometry", "types", "rating"])
-    assert result == "No such place found"
+    assert result["message"] == "No such place found."
 
 @pytest.mark.asyncio
 async def test_find_place_invalid_input_type(mock_gmaps, capsys):
@@ -360,10 +355,10 @@ async def test_find_place_invalid_input_type(mock_gmaps, capsys):
     # Set mock to return a valid response structure if called, to isolate assert_input_type behavior
     mock_gmaps.find_place.return_value = {"candidates": []}
 
-    result = await find_place.fn(query, invalid_type)
+    result = await find_place(query, invalid_type)
 
     expected_error_msg = f"ERROR: '{invalid_type}' is not one of the allowed inpute types: {['textquery', 'phonenumber']}" # Original typo "inpute"
-    assert json.loads(result) == {"error": expected_error_msg}
+    assert result == {"error": expected_error_msg}
 
     # gmaps.find_place should NOT be called if assert_input_type fails and returns early
     mock_gmaps.find_place.assert_not_called()
@@ -382,7 +377,7 @@ async def test_place_nearby_success(mock_gmaps):
     location = {"lat": 34.0522, "lng": -118.2437} # Los Angeles
     radius = 1500
     place_type = "restaurant"
-    result = await place_nearby.fn(location, radius, place_type)
+    result = await place_nearby(location, radius, place_type)
 
     mock_gmaps.places_nearby.assert_called_once_with(location, radius, place_type)
 
@@ -390,7 +385,7 @@ async def test_place_nearby_success(mock_gmaps):
         "Cafe Alpha": "place_id_alpha",
         "Restaurant Beta": "place_id_beta"
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_place_nearby_no_results(mock_gmaps):
@@ -400,7 +395,7 @@ async def test_place_nearby_no_results(mock_gmaps):
     location = {"lat": 0, "lng": 0} # Null Island
     radius = 5000
     place_type = "cafe"
-    result = await place_nearby.fn(location, radius, place_type)
+    result = await place_nearby(location, radius, place_type)
 
     mock_gmaps.places_nearby.assert_called_once_with(location, radius, place_type)
     # The function returns json.dumps({}) if results are empty, which is '"{}"'
@@ -408,14 +403,14 @@ async def test_place_nearby_no_results(mock_gmaps):
     # Let's test both conditions for full coverage of the function's logic.
 
     # Scenario 1: API returns {"results": []}
-    assert json.loads(result) == {}
+    assert result["message"] == "Nothing nearby that matches the search criteria was found."
 
     # Scenario 2: API returns None (or other falsy value for 'results')
     mock_gmaps.reset_mock()
     mock_gmaps.places_nearby.return_value = None
-    result_for_none_api_response = await place_nearby.fn(location, radius, place_type)
+    result_for_none_api_response = await place_nearby(location, radius, place_type)
     mock_gmaps.places_nearby.assert_called_once_with(location, radius, place_type)
-    assert result_for_none_api_response == "Nothing nearby that matches the search criteria was found."
+    assert result_for_none_api_response["message"] == "Nothing nearby that matches the search criteria was found."
 
 
 @pytest.mark.asyncio
@@ -436,7 +431,7 @@ async def test_place_details_success(mock_gmaps):
 
     place_id = "ChIJtestplaceid123"
     fields = ["name", "formatted_address", "formatted_phone_number", "website", "types", "rating", "user_ratings_total"]
-    result = await place_details.fn(place_id, fields)
+    result = await place_details(place_id, fields)
 
     mock_gmaps.place.assert_called_once_with(place_id, fields)
 
@@ -449,7 +444,7 @@ async def test_place_details_success(mock_gmaps):
         "rating": 4.7,
         "user_ratings_total": 150
     }
-    assert json.loads(result) == expected_output
+    assert result == expected_output
 
 @pytest.mark.asyncio
 async def test_place_details_not_found(mock_gmaps):
@@ -459,13 +454,13 @@ async def test_place_details_not_found(mock_gmaps):
 
     # Scenario 1: API returns an empty 'result' dictionary
     mock_gmaps.place.return_value = {"result": {}}
-    result_empty_details = await place_details.fn(place_id, fields)
+    result_empty_details = await place_details(place_id, fields)
     mock_gmaps.place.assert_called_once_with(place_id, fields)
     # Expecting the message for when essential details like name are missing.
     # If 'name' is part of requested fields and it's missing, it hits "Essential place details... missing"
     # If 'name' is NOT part of requested fields, and result is empty, it hits "No details found..."
     # Since 'details' itself is empty, the `if not details:` check in server.py is triggered first.
-    assert result_empty_details == "No details found for the specified place."
+    assert result_empty_details["message"] == "No details found for the specified place."
 
     # Scenario 1b: API returns an empty 'result' dictionary, and 'name' is NOT in fields
     # This should now hit the "No details found for the specified place." if `details` is empty.
@@ -474,22 +469,22 @@ async def test_place_details_not_found(mock_gmaps):
     mock_gmaps.reset_mock()
     mock_gmaps.place.return_value = {"result": {}}
     fields_no_name = ["rating", "website"]
-    result_empty_details_no_name_request = await place_details.fn(place_id, fields_no_name)
+    result_empty_details_no_name_request = await place_details(place_id, fields_no_name)
     mock_gmaps.place.assert_called_once_with(place_id, fields_no_name)
-    assert result_empty_details_no_name_request == "No details found for the specified place."
+    assert result_empty_details_no_name_request["message"] == "No details found for the specified place."
 
 
     # Scenario 2: API returns a 'result' dictionary missing a critical key like 'name' (but 'result' is not empty)
     mock_gmaps.reset_mock()
     mock_gmaps.place.return_value = {"result": {"formatted_address": "Some Address"}} # 'name' is missing
     fields_with_name = ["name", "formatted_address"]
-    result_missing_name = await place_details.fn(place_id, fields_with_name)
+    result_missing_name = await place_details(place_id, fields_with_name)
     mock_gmaps.place.assert_called_once_with(place_id, fields_with_name)
-    assert result_missing_name == "Essential place details (e.g. name) are missing."
+    assert result_missing_name["message"] == "Essential place details (e.g. name) are missing."
 
     # Scenario 3: API returns None (overall falsy response for 'results')
     mock_gmaps.reset_mock()
     mock_gmaps.place.return_value = None
-    result_none_response = await place_details.fn(place_id, fields) # fields can be anything here
+    result_none_response = await place_details(place_id, fields) # fields can be anything here
     mock_gmaps.place.assert_called_once_with(place_id, fields)
-    assert result_none_response == "No such place found."
+    assert result_none_response["message"] == "No such place found."
